@@ -1,6 +1,4 @@
 import click
-from easydict import EasyDict as edict
-import yaml
 import traceback
 from dataset.temporal_graph_dataset import Temporal_Graph_Signal
 
