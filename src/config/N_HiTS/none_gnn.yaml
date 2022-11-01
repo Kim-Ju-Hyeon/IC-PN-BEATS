@@ -1,8 +1,8 @@
 ---
-exp_name: test # 0417
+exp_name: N_HiTS_None_GNN # 0417
 exp_dir: ../exp
-use_gpu: False
-device: cpu
+use_gpu: True
+device: 0
 seed: None # If you want to reproduce set the seed
 model_name: N_model # N_model IC_PN_BEATS
 train_resume: False
@@ -13,7 +13,7 @@ dataset:
 
 train:
     optimizer: Adam
-    epoch: 1
+    epoch: 150
     loss_function : MSE
     lr: 1.0e-3
     wd: 0.0e-4 # Adam

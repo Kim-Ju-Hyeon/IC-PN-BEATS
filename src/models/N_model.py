@@ -52,6 +52,7 @@ class N_model(nn.Module):
         else:
             self.update_only_message = False
 
+        self.stacks = []
         self.parameters = []
 
         for stack_id in range(len(self.stack_types)):
@@ -128,6 +129,7 @@ class N_model(nn.Module):
             raise ValueError("Invalid block type")
 
     def forward(self, inputs, interpretability=False):
+        inputs = inputs.squeeze()
         outputs = defaultdict(list)
 
         device = inputs.device
