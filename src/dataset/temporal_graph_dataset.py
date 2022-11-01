@@ -1,5 +1,4 @@
 import numpy as np
-import random
 import torch
 
 from torch_geometric.data import Data
@@ -13,8 +12,6 @@ from six.moves import urllib
 import zipfile
 import gdown
 import pickle
-
-from utils.dataset_utils import time_features_from_frequency_str
 
 
 class Temporal_Graph_Signal(object):
