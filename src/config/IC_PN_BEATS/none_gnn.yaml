@@ -55,8 +55,8 @@ forecasting_module:
     thetas_dim: [8, 8] # Only Use when N_model Generic
     message_norm: False
 
-    pooling_mode: max # max average
+    pooling_mode: average # max average
     # Must Match 1) stack_num when use IC-PN-BEATS 2) len(stack_types) when use N-model (n-hits)
-    n_pool_kernel_size: [2, 2, 2]
+    n_pool_kernel_size: [16, 8, 4]
     n_stride_size: [2, 2, 2]
-    n_freq_downsample: [168, 24, 1]
+    n_freq_downsample: [64, 8, 1]

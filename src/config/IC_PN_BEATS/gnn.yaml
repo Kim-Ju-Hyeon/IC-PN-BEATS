@@ -33,12 +33,12 @@ graph_learning:
     kernel_size: [16, 16]
     stride: [2, 2]
     conv_dim: [8, 16]
-    hidden_dim: 512
+    hidden_dim: 256
 
 forecasting_module:
     # IC_PN_BEATS
-    stack_num: 3
-    singular_stack_num: 0
+    stack_num: 2
+    singular_stack_num: 1
 
     # N_model
     shapre_weights_in_stack: True
@@ -57,6 +57,6 @@ forecasting_module:
 
     pooling_mode: average # max average
     # Must Match 1) stack_num when use IC-PN-BEATS 2) len(stack_types) when use N-model (n-hits)
-    n_pool_kernel_size: [2, 2, 2]
+    n_pool_kernel_size: [16, 8, 4]
     n_stride_size: [2, 2, 2]
-    n_freq_downsample: [168, 24, 1]
+    n_freq_downsample: [64, 8, 1]
