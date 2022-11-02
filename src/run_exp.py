@@ -28,7 +28,7 @@ def main(conf_file_path):
 
     config.forecasting_module.n_theta_hidden = [256]
     config.forecasting_module.thetas_dim = [128, 32]
-    config.dataset.name = 'ETTm2'
+    config.dataset.name = 'ECL'
 
     mkdir(config.model_save)
 
