@@ -8,7 +8,7 @@ model_name: IC_PN_BEATS # N_model IC_PN_BEATS
 train_resume: False
 
 dataset:
-    name: ETTm2 # ETTm1, ETTm2, ETTh1, ETTh2, ECL, WTH, Traffic, COVID19, METR-LA, PEMS-BAY, Exchange
+    name: Exchange # ETTm1, ETTm2, ETTh1, ETTh2, ECL, WTH, Traffic, COVID19, METR-LA, PEMS-BAY, Exchange
     scaler_type: std # std, invariant, norm, norm1, median
 
 train:
@@ -26,7 +26,7 @@ graph_learning:
     graph_mode: no_graph # no_graph, ground_truth -> Only available For METR-LA, PEMS-BAY dataset
     edge_prob: 0.1 # For random_graph
 
-    factor: 3 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
+    factor: 5 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
     n_head: 4 # Use it Attention Graph Learning
     dropout_rate: 0.5
 
