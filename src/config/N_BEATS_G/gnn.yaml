@@ -13,7 +13,7 @@ dataset:
 
 train:
     optimizer: Adam
-    epoch: 150
+    epoch: 50
     loss_function : MSE
     lr: 1.0e-3
     wd: 0.0e-4 # Adam
