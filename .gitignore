@@ -14,6 +14,7 @@ venv
 *.h5
 *.7z
 *.txt
+*.ipynb
 
 data/
 LNP_lam_all.pickle
