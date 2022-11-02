@@ -26,8 +26,9 @@ def main(conf_file_path):
     config.exp_sub_dir = os.path.join(config.exp_dir, sub_dir)
     config.model_save = os.path.join(config.exp_sub_dir, "model_save")
 
-    config.forecasting_module.n_theta_hidden = [128]
-    config.forecasting_module.thetas_dim = [32, 32]
+    config.forecasting_module.n_theta_hidden = [256]
+    config.forecasting_module.thetas_dim = [128, 32]
+    config.dataset.name = 'Exchange'
 
     mkdir(config.model_save)
 

@@ -126,7 +126,7 @@ class IC_PN_BEATS(nn.Module):
             if theta_type == 'trend':
                 thetas_dim = [self.backcast_length, max(self.forecast_length // self.n_freq_downsample[stack_id], 1)]
             else:
-                thetas_dim = [self.backcast_length, self.forecast_length]
+                thetas_dim = self.thetas_dim
 
             block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
                                n_theta_hidden=self.n_theta_hidden, thetas_dim=thetas_dim,
