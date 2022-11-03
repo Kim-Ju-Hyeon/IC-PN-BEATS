@@ -121,7 +121,7 @@ class GraphLearningProbSparseAttention(nn.Module):
         for i, conv in enumerate(self.feature_extracotr):
             x = conv(x)
             x = F.relu(x)
-            x = self.feature_batchnorm[i](x)
+            # x = self.feature_batchnorm[i](x)
 
         x = x.view(self.num_nodes*self.batch_size, -1)
 
