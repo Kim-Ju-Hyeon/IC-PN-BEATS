@@ -128,8 +128,8 @@ class GraphLearningProbSparseAttention(nn.Module):
         x = self.fc_concat(x)
         x = F.relu(x)
 
-        queries = self.query_projection(x).view(self.batch_size, self.nodes_num, self.n_head, -1)
-        keys = self.key_projection(x).view(self.batch_size, self.nodes_num, self.n_head, -1)
+        queries = self.query_projection(x).view(B, nodes_num, self.n_head, -1)
+        keys = self.key_projection(x).view(B, nodes_num, self.n_head, -1)
 
         attn = self.attention(queries, keys)
         attn = attn.masked_fill(attn < 1 / self.nodes_num, 0)

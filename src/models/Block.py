@@ -301,7 +301,7 @@ class N_HiTS_Block(GNN_Block):
             theta_b = self.theta_b_fc(x)
             theta_f = self.theta_f_fc(x)
 
-            backcast = F.interpolate(theta_b[:, None, :], size=self.forecast_length*3,
+            backcast = F.interpolate(theta_b[:, None, :], size=self.backcast_length,
                                      mode='linear').squeeze(dim=1)
 
             forecast = F.interpolate(theta_f[:, None, :], size=self.forecast_length,
@@ -315,7 +315,7 @@ class N_HiTS_Block(GNN_Block):
             theta_b = self.theta_b_fc(x)
             theta_f = self.theta_f_fc(x)
 
-            backcast = F.interpolate(theta_b[:, None, :], size=self.forecast_length * 3,
+            backcast = F.interpolate(theta_b[:, None, :], size=self.backcast_length,
                                      mode='linear').squeeze(dim=1)
 
             forecast = F.interpolate(theta_f[:, None, :], size=self.forecast_length,
