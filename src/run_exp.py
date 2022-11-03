@@ -17,7 +17,7 @@ def main(conf_file_path):
     config = edict(yaml.load(open(conf_file_path, 'r'), Loader=yaml.FullLoader))
 
     now = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
-    config.dataset.name = 'Exchange'
+    config.dataset.name = 'WTH'
     sub_dir = now.strftime('%m%d_%H%M%S') + '_' + config.dataset.name
     config.seed = set_seed(config.seed)
 
