@@ -109,7 +109,8 @@ class GNN_Block(nn.Module):
                     in_channels=self.n_theta_hidden[-1],
                     out_channels=self.n_theta_hidden[-1],
                     heads=4,
-                    concat=False
+                    concat=False,
+                    edge_dim=1
                 ))
 
             elif self.inter_correlation_block_type == 'None_GNN':

@@ -173,9 +173,9 @@ class N_model(nn.Module):
 
             for block_id in range(len(self.stacks[stack_id])):
                 if return_GAT_attention:
-                    b, f, _gat_attn = self.stacks[stack_id][block_id](inputs, batch_edge_index, batch_edge_weight)
+                    b, f, _gat_attn = self.stacks[stack_id][block_id](inputs, batch_edge_index, batch_edge_weight, return_GAT_attention)
                 else:
-                    b, f = self.stacks[stack_id][block_id](inputs, batch_edge_index, batch_edge_weight)
+                    b, f = self.stacks[stack_id][block_id](inputs, batch_edge_index, batch_edge_weight, return_GAT_attention)
 
                 inputs = inputs - b
 
