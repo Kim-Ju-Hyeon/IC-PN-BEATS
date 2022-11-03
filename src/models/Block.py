@@ -173,7 +173,7 @@ class Trend_Block(GNN_Block):
 
     def forward(self, x, edge_index, edge_weight, return_GAT_attention=False):
         if return_GAT_attention:
-            x, attn = super().forward(x, edge_index, edge_weight)
+            x, attn = super().forward(x, edge_index, edge_weight, return_GAT_attention)
 
             backcast = self.backcast_trend_model(self.theta_b_fc(x))
             forecast = self.forecast_trend_model(self.theta_f_fc(x))
@@ -206,7 +206,7 @@ class Seasonlity_Block(GNN_Block):
 
     def forward(self, x, edge_index, edge_weight, return_GAT_attention=False):
         if return_GAT_attention:
-            x, attn = super().forward(x, edge_index, edge_weight)
+            x, attn = super().forward(x, edge_index, edge_weight, return_GAT_attention)
 
             backcast = self.backcast_trend_model(self.theta_b_fc(x))
             forecast = self.forecast_trend_model(self.theta_f_fc(x))
@@ -239,7 +239,7 @@ class Generic_Block(GNN_Block):
 
     def forward(self, x, edge_index, edge_weight, return_GAT_attention=False):
         if return_GAT_attention:
-            x, attn = super().forward(x, edge_index, edge_weight)
+            x, attn = super().forward(x, edge_index, edge_weight, return_GAT_attention)
 
             theta_b = self.theta_b_fc(x)
             theta_f = self.theta_f_fc(x)
@@ -298,7 +298,7 @@ class N_HiTS_Block(GNN_Block):
         x = x.squeeze()
 
         if return_GAT_attention:
-            x, attn = super().forward(x, edge_index, edge_weight)
+            x, attn = super().forward(x, edge_index, edge_weight, return_GAT_attention)
 
             theta_b = self.theta_b_fc(x)
             theta_f = self.theta_f_fc(x)
