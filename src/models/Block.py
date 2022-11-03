@@ -291,6 +291,7 @@ class N_HiTS_Block(GNN_Block):
 
     def forward(self, x, edge_index, edge_weight, return_GAT_attention=False):
         x = squeeze_dim(x)
+        B_num_node, input_length = x.shape
         x = x.unsqueeze(dim=1)
         x = self.pooling_layer(x)
         x = x.squeeze()
@@ -301,7 +302,7 @@ class N_HiTS_Block(GNN_Block):
             theta_b = self.theta_b_fc(x)
             theta_f = self.theta_f_fc(x)
 
-            backcast = F.interpolate(theta_b[:, None, :], size=self.backcast_length,
+            backcast = F.interpolate(theta_b[:, None, :], size=input_length,
                                      mode='linear').squeeze(dim=1)
 
             forecast = F.interpolate(theta_f[:, None, :], size=self.forecast_length,
@@ -315,7 +316,7 @@ class N_HiTS_Block(GNN_Block):
             theta_b = self.theta_b_fc(x)
             theta_f = self.theta_f_fc(x)
 
-            backcast = F.interpolate(theta_b[:, None, :], size=self.backcast_length,
+            backcast = F.interpolate(theta_b[:, None, :], size=input_length,
                                      mode='linear').squeeze(dim=1)
 
             forecast = F.interpolate(theta_f[:, None, :], size=self.forecast_length,
