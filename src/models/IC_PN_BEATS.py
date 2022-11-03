@@ -182,7 +182,8 @@ class IC_PN_BEATS(nn.Module):
             inputs = inputs.squeeze()
 
             if self.config.graph_learning.graph_learning:
-                attn = self.graph_learning_module(inputs)
+                attn = self.graph_learning_module(
+                    inputs.view(self.batch_size, self.nodes_num, self.backcast_length))
                 batch_edge_index, batch_edge_weight = attn_to_edge_index(attn)
             else:
                 edge_index, edge_attr = self.graph_learning_module()
@@ -234,8 +235,8 @@ class IC_PN_BEATS(nn.Module):
 
         for singular_stack_index in range(self.singular_stack_num):
             if self.config.graph_learning.graph_learning:
-                # gl_input = inputs.view(self.batch_size, self.nodes_num, self.backcast_length)
-                attn = self.graph_learning_module(inputs)
+                gl_input = inputs.view(self.batch_size, self.nodes_num, self.backcast_length)
+                attn = self.graph_learning_module(gl_input)
                 _batch_edge_index, _batch_edge_weight = attn_to_edge_index(attn)
             else:
                 edge_index, edge_attr = self.graph_learning_module()

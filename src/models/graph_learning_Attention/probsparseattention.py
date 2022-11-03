@@ -115,15 +115,15 @@ class GraphLearningProbSparseAttention(nn.Module):
                 m.bias.data.fill_(0.1)
 
     def forward(self, x):
-        # B, nodes_num, hidden = x.shape
-        # x = x.view(B*nodes_num, 1, -1)
+        B, nodes_num, hidden = x.shape
+        x = x.view(B*nodes_num, 1, -1)
 
         for i, conv in enumerate(self.feature_extracotr):
             x = conv(x)
             x = F.relu(x)
             x = self.feature_batchnorm[i](x)
 
-        # x = x.view(self.num_nodes*self.batch_size, -1)
+        x = x.view(self.num_nodes*self.batch_size, -1)
 
         x = self.fc_concat(x)
         x = F.relu(x)

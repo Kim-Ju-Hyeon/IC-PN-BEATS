@@ -157,7 +157,8 @@ class N_model(nn.Module):
             stacks_backcast = torch.zeros(size=(inputs.size()[0], self.backcast_length)).to(device=device)
 
             if self.config.graph_learning.graph_learning:
-                attn = self.graph_learning_module(inputs)
+                attn = self.graph_learning_module(
+                    inputs.view(self.batch_size, self.nodes_num, self.backcast_length))
                 batch_edge_index, batch_edge_weight = attn_to_edge_index(attn)
             else:
                 edge_index, edge_attr = self.graph_learning_module()
