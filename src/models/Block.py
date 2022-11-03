@@ -132,7 +132,7 @@ class GNN_Block(nn.Module):
         self.theta_b_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[0], bias=False)
         self.theta_f_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[1], bias=False)
 
-    def forward(self, x, edge_index, edge_weight=None):
+    def forward(self, x, edge_index, edge_weight, return_GAT_attention=False):
         x = squeeze_dim(x)
 
         for mlp in self.MLP_stack:
@@ -140,16 +140,18 @@ class GNN_Block(nn.Module):
             # x = self.drop_out(x)
 
         for ii, layer in enumerate(self.Inter_Correlation_Block):
-            if self.inter_correlation_block_type == 'GAT':
-                x = layer(x, edge_index)
+            if return_GAT_attention:
+                x, attn = layer(x, edge_index, edge_weight)
+                x = F.relu(x)
 
+                return x, attn
             else:
                 x = layer(x, edge_index, edge_weight)
-            x = F.relu(x)
+                x = F.relu(x)
+                return x
+
             # x = self.norm_layer[ii](x)
             # x = self.drop_out(x)
-
-        return x
 
 
 class Trend_Block(GNN_Block):
@@ -168,13 +170,21 @@ class Trend_Block(GNN_Block):
         self.backcast_trend_model = TrendGenerator(thetas_dim[0], backcast_length)
         self.forecast_trend_model = TrendGenerator(thetas_dim[1], forecast_length)
 
-    def forward(self, x, edge_index, edge_weight):
-        x = super().forward(x, edge_index, edge_weight)
+    def forward(self, x, edge_index, edge_weight, return_GAT_attention=False):
+        if return_GAT_attention:
+            x, attn = super().forward(x, edge_index, edge_weight)
 
-        backcast = self.backcast_trend_model(self.theta_b_fc(x))
-        forecast = self.forecast_trend_model(self.theta_f_fc(x))
+            backcast = self.backcast_trend_model(self.theta_b_fc(x))
+            forecast = self.forecast_trend_model(self.theta_f_fc(x))
 
-        return backcast, forecast
+            return backcast, forecast, attn
+        else:
+            x = super().forward(x, edge_index, edge_weight)
+
+            backcast = self.backcast_trend_model(self.theta_b_fc(x))
+            forecast = self.forecast_trend_model(self.theta_f_fc(x))
+
+            return backcast, forecast
 
 
 class Seasonlity_Block(GNN_Block):
@@ -193,13 +203,21 @@ class Seasonlity_Block(GNN_Block):
         self.backcast_seasonality_model = SeasonalityGenerator(backcast_length)
         self.forecast_seasonality_model = SeasonalityGenerator(forecast_length)
 
-    def forward(self, x, edge_index, edge_weight):
-        x = super().forward(x, edge_index, edge_weight)
+    def forward(self, x, edge_index, edge_weight, return_GAT_attention=False):
+        if return_GAT_attention:
+            x, attn = super().forward(x, edge_index, edge_weight)
 
-        backcast = self.backcast_seasonality_model(self.theta_b_fc(x))
-        forecast = self.forecast_seasonality_model(self.theta_f_fc(x))
+            backcast = self.backcast_trend_model(self.theta_b_fc(x))
+            forecast = self.forecast_trend_model(self.theta_f_fc(x))
 
-        return backcast, forecast
+            return backcast, forecast, attn
+        else:
+            x = super().forward(x, edge_index, edge_weight)
+
+            backcast = self.backcast_trend_model(self.theta_b_fc(x))
+            forecast = self.forecast_trend_model(self.theta_f_fc(x))
+
+            return backcast, forecast
 
 
 class Generic_Block(GNN_Block):
@@ -218,16 +236,27 @@ class Generic_Block(GNN_Block):
         self.backcast_fc = nn.Linear(thetas_dim[0], backcast_length)
         self.forecast_fc = nn.Linear(thetas_dim[1], forecast_length)
 
-    def forward(self, x, edge_index, edge_weight=None):
-        x = super().forward(x, edge_index, edge_weight)
+    def forward(self, x, edge_index, edge_weight, return_GAT_attention=False):
+        if return_GAT_attention:
+            x, attn = super().forward(x, edge_index, edge_weight)
 
-        theta_b = self.theta_b_fc(x)
-        theta_f = self.theta_f_fc(x)
+            theta_b = self.theta_b_fc(x)
+            theta_f = self.theta_f_fc(x)
 
-        backcast = self.backcast_fc(theta_b)
-        forecast = self.forecast_fc(theta_f)
+            backcast = self.backcast_fc(theta_b)
+            forecast = self.forecast_fc(theta_f)
 
-        return backcast, forecast
+            return backcast, forecast, attn
+        else:
+            x = super().forward(x, edge_index, edge_weight)
+
+            theta_b = self.theta_b_fc(x)
+            theta_f = self.theta_f_fc(x)
+
+            backcast = self.backcast_fc(theta_b)
+            forecast = self.forecast_fc(theta_f)
+
+            return backcast, forecast
 
 
 class N_HiTS_Block(GNN_Block):
@@ -260,20 +289,36 @@ class N_HiTS_Block(GNN_Block):
             self.pooling_layer = nn.AvgPool1d(kernel_size=n_pool_kernel_size,
                                               stride=n_stride_size, ceil_mode=True)
 
-    def forward(self, x, edge_index, edge_weight=None):
+    def forward(self, x, edge_index, edge_weight, return_GAT_attention=False):
         x = squeeze_dim(x)
         x = x.unsqueeze(dim=1)
         x = self.pooling_layer(x)
         x = x.squeeze()
-        x = super().forward(x, edge_index, edge_weight)
 
-        theta_b = self.theta_b_fc(x)
-        theta_f = self.theta_f_fc(x)
+        if return_GAT_attention:
+            x, attn = super().forward(x, edge_index, edge_weight)
 
-        backcast = F.interpolate(theta_b[:, None, :], size=self.forecast_length*3,
-                                 mode='linear').squeeze(dim=1)
+            theta_b = self.theta_b_fc(x)
+            theta_f = self.theta_f_fc(x)
 
-        forecast = F.interpolate(theta_f[:, None, :], size=self.forecast_length,
-                                 mode='linear').squeeze(dim=1)
+            backcast = F.interpolate(theta_b[:, None, :], size=self.forecast_length*3,
+                                     mode='linear').squeeze(dim=1)
 
-        return backcast, forecast
+            forecast = F.interpolate(theta_f[:, None, :], size=self.forecast_length,
+                                     mode='linear').squeeze(dim=1)
+
+            return backcast, forecast, attn
+
+        else:
+            x = super().forward(x, edge_index, edge_weight)
+
+            theta_b = self.theta_b_fc(x)
+            theta_f = self.theta_f_fc(x)
+
+            backcast = F.interpolate(theta_b[:, None, :], size=self.forecast_length * 3,
+                                     mode='linear').squeeze(dim=1)
+
+            forecast = F.interpolate(theta_f[:, None, :], size=self.forecast_length,
+                                     mode='linear').squeeze(dim=1)
+
+            return backcast, forecast

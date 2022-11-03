@@ -17,18 +17,16 @@ def main(conf_file_path):
     config = edict(yaml.load(open(conf_file_path, 'r'), Loader=yaml.FullLoader))
 
     now = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
+    config.dataset.name = 'ETTm2'
     sub_dir = now.strftime('%m%d_%H%M%S') + '_' + config.dataset.name
     config.seed = set_seed(config.seed)
 
-    config.exp_name = now.strftime('%m%d') + '_' + config.exp_name
-
-    config.exp_dir = os.path.join(config.exp_dir, str(config.exp_name))
+    config.exp_dir = os.path.join(config.exp_dir, now.strftime('%m%d'), str(config.exp_name))
     config.exp_sub_dir = os.path.join(config.exp_dir, sub_dir)
     config.model_save = os.path.join(config.exp_sub_dir, "model_save")
 
     config.forecasting_module.n_theta_hidden = [256]
-    config.forecasting_module.thetas_dim = [128, 32]
-    config.dataset.name = 'ECL'
+    config.forecasting_module.thetas_dim = [32, 32]
 
     mkdir(config.model_save)
 

@@ -129,6 +129,12 @@ class N_model(nn.Module):
             raise ValueError("Invalid block type")
 
     def forward(self, inputs, interpretability=False):
+        if (self.inter_correlation_block_type == 'GAT') and (interpretability == True):
+            return_GAT_attention = True
+        else:
+            return_GAT_attention = False
+            _gat_attn = None
+
         inputs = inputs.squeeze()
         outputs = defaultdict(list)
 
@@ -144,14 +150,14 @@ class N_model(nn.Module):
         _total_backcast_output = []
 
         _attention_matrix = []
+        gat_attn = []
 
         for stack_id in range(len(self.stacks)):
             stacks_forecast = torch.zeros(size=(inputs.size()[0], self.forecast_length)).to(device=device)
             stacks_backcast = torch.zeros(size=(inputs.size()[0], self.backcast_length)).to(device=device)
 
             if self.config.graph_learning.graph_learning:
-                attn = self.graph_learning_module(
-                    inputs.view(self.batch_size, self.nodes_num, self.backcast_length))
+                attn = self.graph_learning_module(inputs)
                 batch_edge_index, batch_edge_weight = attn_to_edge_index(attn)
             else:
                 edge_index, edge_attr = self.graph_learning_module()
@@ -165,7 +171,10 @@ class N_model(nn.Module):
                     batch_edge_weight = build_batch_edge_weight(edge_attr, num_graphs=self.batch_size)
 
             for block_id in range(len(self.stacks[stack_id])):
-                b, f = self.stacks[stack_id][block_id](inputs, batch_edge_index, batch_edge_weight)
+                if return_GAT_attention:
+                    b, f, _gat_attn = self.stacks[stack_id][block_id](inputs, batch_edge_index, batch_edge_weight)
+                else:
+                    b, f = self.stacks[stack_id][block_id](inputs, batch_edge_index, batch_edge_weight)
 
                 inputs = inputs - b
 
@@ -176,6 +185,7 @@ class N_model(nn.Module):
                 _per_stack_backcast.append(stacks_backcast.cpu().numpy())
                 _per_stack_forecast.append(stacks_forecast.cpu().numpy())
                 _attention_matrix.append(attn.cpu().detach().numpy())
+                gat_attn.append(_gat_attn.cpu().detach().numpy())
 
             forecast = forecast + stacks_forecast
             backcast = backcast + stacks_backcast
@@ -184,6 +194,7 @@ class N_model(nn.Module):
             outputs['per_stack_backcast'] = np.stack(_per_stack_backcast, axis=0)
             outputs['per_stack_forecast'] = np.stack(_per_stack_forecast, axis=0)
             outputs['attention_matrix'] = np.stack(_attention_matrix, axis=0)
+            outputs['GAT_matrix'] = np.stack(gat_attn, axis=0)
 
         return backcast, forecast, outputs
 

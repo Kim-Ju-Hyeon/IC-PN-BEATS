@@ -58,7 +58,9 @@ class InterCorrealtionStack(MessagePassing):
             x = x_j
         else:
             x = torch.cat([x_i, x_j], dim=-1)
+
         message = F.relu(self.fc_message(x))
+
         if self.GLU:
             x = self.gated_linear_unit(x)
             gate = torch.sigmoid(x)

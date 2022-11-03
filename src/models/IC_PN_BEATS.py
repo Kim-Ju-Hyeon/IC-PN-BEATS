@@ -123,11 +123,12 @@ class IC_PN_BEATS(nn.Module):
                                update_only_message=self.update_only_message)
 
         elif stack_type == IC_PN_BEATS.GENERIC_BLOCK:
-            if theta_type == 'trend':
-                thetas_dim = [self.backcast_length, max(self.forecast_length // self.n_freq_downsample[stack_id], 1)]
-            else:
-                thetas_dim = self.thetas_dim
+            # if theta_type == 'trend':
+            #     thetas_dim = [self.backcast_length, max(self.forecast_length // self.n_freq_downsample[stack_id], 1)]
+            # else:
+            #     thetas_dim = self.thetas_dim
 
+            thetas_dim = self.thetas_dim
             block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
                                n_theta_hidden=self.n_theta_hidden, thetas_dim=thetas_dim,
                                backcast_length=self.backcast_length, forecast_length=self.forecast_length,
@@ -150,6 +151,13 @@ class IC_PN_BEATS(nn.Module):
             raise ValueError("Invalid block type")
 
     def forward(self, inputs, interpretability=False):
+        if (self.inter_correlation_block_type == 'GAT') and (interpretability == True):
+            return_GAT_attention = True
+        else:
+            return_GAT_attention = False
+            trend_attn = None
+            season_attn = None
+
         outputs = defaultdict(list)
         device = inputs.device
 
@@ -166,12 +174,15 @@ class IC_PN_BEATS(nn.Module):
         _attention_matrix = []
         _singual_attention_matrix = []
 
+        gat_trend = []
+        gat_season = []
+        gat_singul = []
+
         for stack_index in range(self.stack_num):
             inputs = inputs.squeeze()
 
             if self.config.graph_learning.graph_learning:
-                attn = self.graph_learning_module(
-                    inputs.view(self.batch_size, self.nodes_num, self.backcast_length))
+                attn = self.graph_learning_module(inputs)
                 batch_edge_index, batch_edge_weight = attn_to_edge_index(attn)
             else:
                 edge_index, edge_attr = self.graph_learning_module()
@@ -189,12 +200,23 @@ class IC_PN_BEATS(nn.Module):
                                         mode='linear').squeeze(dim=1)
             seasonality_input = inputs - trend_input
 
-            trend_b, trend_f = self.trend_stacks[stack_index](trend_input, batch_edge_index,
-                                                              batch_edge_weight)
+            if return_GAT_attention:
+                trend_b, trend_f, trend_attn = self.trend_stacks[stack_index](trend_input, batch_edge_index,
+                                                                              batch_edge_weight, return_GAT_attention)
 
-            seasonality_b, seasonality_f = self.seasonality_stacks[stack_index](seasonality_input,
-                                                                                batch_edge_index,
-                                                                                batch_edge_weight)
+                seasonality_b, seasonality_f, season_attn = self.seasonality_stacks[stack_index](seasonality_input,
+                                                                                                 batch_edge_index,
+                                                                                                 batch_edge_weight,
+                                                                                                 return_GAT_attention)
+
+            else:
+                trend_b, trend_f = self.trend_stacks[stack_index](trend_input, batch_edge_index,
+                                                                  batch_edge_weight, return_GAT_attention)
+
+                seasonality_b, seasonality_f = self.seasonality_stacks[stack_index](seasonality_input,
+                                                                                    batch_edge_index,
+                                                                                    batch_edge_weight,
+                                                                                    return_GAT_attention)
 
             if interpretability:
                 _per_trend_backcast.append(trend_b.cpu().detach().numpy())
@@ -202,6 +224,8 @@ class IC_PN_BEATS(nn.Module):
                 _per_seasonality_backcast.append(seasonality_b.cpu().detach().numpy())
                 _per_seasonality_forecast.append(seasonality_f.cpu().detach().numpy())
                 _attention_matrix.append(attn.cpu().detach().numpy())
+                gat_trend.append(trend_attn.cpu().detach().numpy())
+                gat_season.append(season_attn.cpu().detach().numpy())
 
             inputs = inputs - trend_b - seasonality_b
 
@@ -210,8 +234,8 @@ class IC_PN_BEATS(nn.Module):
 
         for singular_stack_index in range(self.singular_stack_num):
             if self.config.graph_learning.graph_learning:
-                gl_input = inputs.view(self.batch_size, self.nodes_num, self.backcast_length)
-                attn = self.graph_learning_module(gl_input)
+                # gl_input = inputs.view(self.batch_size, self.nodes_num, self.backcast_length)
+                attn = self.graph_learning_module(inputs)
                 _batch_edge_index, _batch_edge_weight = attn_to_edge_index(attn)
             else:
                 edge_index, edge_attr = self.graph_learning_module()
@@ -224,9 +248,16 @@ class IC_PN_BEATS(nn.Module):
                 else:
                     _batch_edge_weight = build_batch_edge_weight(edge_attr, num_graphs=self.batch_size)
 
-            singular_b, singular_f = self.sigular_stacks[singular_stack_index](inputs,
-                                                                               _batch_edge_index,
-                                                                               _batch_edge_weight)
+            if return_GAT_attention:
+                singular_b, singular_f, singular_attn = self.sigular_stacks[singular_stack_index](inputs,
+                                                                                                  _batch_edge_index,
+                                                                                                  _batch_edge_weight,
+                                                                                                  return_GAT_attention)
+            else:
+                singular_b, singular_f = self.sigular_stacks[singular_stack_index](inputs,
+                                                                                   _batch_edge_index,
+                                                                                   _batch_edge_weight,
+                                                                                   return_GAT_attention)
 
             inputs = inputs - singular_b
             forecast = forecast + singular_f
@@ -236,6 +267,7 @@ class IC_PN_BEATS(nn.Module):
                 _singual_backcast.append(singular_b.cpu().detach().numpy())
                 _singual_forecast.append(singular_f.cpu().detach().numpy())
                 _singual_attention_matrix.append(attn.cpu().detach().numpy())
+                gat_singul.append(singular_attn.cpu().detach().numpy())
 
         if interpretability:
             if self.stack_num > 0:
@@ -255,6 +287,11 @@ class IC_PN_BEATS(nn.Module):
             attn_matrix = {'Double': _attention_matrix,
                            'Singular': _singual_attention_matrix}
 
+            GAT_matrix = {'Trend': gat_trend,
+                          'Season': gat_season,
+                          'Singular': gat_singul}
+
             outputs['attention_matrix'] = attn_matrix
+            outputs['GAT_matrix'] = GAT_matrix
 
         return backcast, forecast, outputs

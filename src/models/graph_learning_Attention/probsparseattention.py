@@ -79,7 +79,6 @@ class GraphLearningProbSparseAttention(nn.Module):
         self.hidden_dim = config.graph_learning.hidden_dim
 
         self.feature_extracotr = nn.ModuleList()
-        self.feature_batchnorm = nn.ModuleList()
 
         for i in range(len(self.conv_dim)):
             if i == 0:
@@ -99,11 +98,7 @@ class GraphLearningProbSparseAttention(nn.Module):
             temp_inpt = layer(temp_inpt)
             out_size.append(temp_inpt.shape[-1])
 
-        for i in range(len(self.conv_dim)):
-            self.feature_batchnorm.append(nn.LayerNorm(out_size[i]))
-
         self.fc_concat = nn.Linear(out_size[-1] * self.conv_dim[-1], self.hidden_dim)
-        self.feature_batchnorm.append(nn.LayerNorm(self.hidden_dim))
 
         self.d_k = self.d_q = self.hidden_dim // self.n_head
         self.query_projection = nn.Linear(self.hidden_dim, self.d_k * self.n_head)
@@ -120,25 +115,24 @@ class GraphLearningProbSparseAttention(nn.Module):
                 m.bias.data.fill_(0.1)
 
     def forward(self, x):
-        B, nodes_num, hidden = x.shape
+        # B, nodes_num, hidden = x.shape
+        # x = x.view(B*nodes_num, 1, -1)
 
-        x = x.view(B*nodes_num, 1, -1)
         for i, conv in enumerate(self.feature_extracotr):
             x = conv(x)
             x = F.relu(x)
             x = self.feature_batchnorm[i](x)
 
-        x = x.view(self.num_nodes*self.batch_size, -1)
+        # x = x.view(self.num_nodes*self.batch_size, -1)
 
         x = self.fc_concat(x)
         x = F.relu(x)
-        x = self.feature_batchnorm[-1](x)
 
-        queries = self.query_projection(x).view(B, nodes_num, self.n_head, -1)
-        keys = self.key_projection(x).view(B, nodes_num, self.n_head, -1)
+        queries = self.query_projection(x).view(self.batch_size, self.nodes_num, self.n_head, -1)
+        keys = self.key_projection(x).view(self.batch_size, self.nodes_num, self.n_head, -1)
 
         attn = self.attention(queries, keys)
-        attn = attn.masked_fill(attn < 1 / nodes_num, 0)
+        attn = attn.masked_fill(attn < 1 / self.nodes_num, 0)
         attn = attn.mean(dim=1)
 
         # attn = attn.masked_fill(attn < 1/nodes_num, 0)

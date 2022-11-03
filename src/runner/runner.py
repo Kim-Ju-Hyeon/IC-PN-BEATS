@@ -22,7 +22,6 @@ from utils.train_helper import edict2dict
 
 class Runner(object):
     def __init__(self, config):
-        config.forecasting_module.backcast_length = config.forecasting_module.forecast_length * 3
         self.get_dataset(config)
         self.config = config
         self.exp_dir = config.exp_dir

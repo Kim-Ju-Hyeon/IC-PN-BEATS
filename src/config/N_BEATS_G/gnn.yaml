@@ -18,7 +18,7 @@ train:
     lr: 1.0e-3
     wd: 0.0e-4 # Adam
     momentum: 0.9 # SGD
-    batch_size : 32
+    batch_size : 256
 
 graph_learning:
     graph_learning: True
@@ -46,14 +46,15 @@ forecasting_module:
     num_blocks_per_stack: 1
 
     # Common Parameter
-    inter_correlation_block_type: MPGLU # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message, None_GNN
+    inter_correlation_block_type: GAT # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message, None_GNN
     update_only_message: False
     activ: ReLU
     inter_correlation_stack_length: 1
     forecast_length: 96
+    backcast_length: 96
     n_theta_hidden: [512, 512]
     thetas_dim: [288, 96] # Only Use when N_model Generic
-    message_norm: True
+    message_norm: False
 
     pooling_mode: max # max average
     # Must Match 1) stack_num when use IC-PN-BEATS 2) len(stack_types) when use N-model (n-hits)
