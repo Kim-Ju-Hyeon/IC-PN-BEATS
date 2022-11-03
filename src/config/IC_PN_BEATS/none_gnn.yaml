@@ -58,6 +58,6 @@ forecasting_module:
 
     pooling_mode: average # max average
     # Must Match 1) stack_num when use IC-PN-BEATS 2) len(stack_types) when use N-model (n-hits)
-    n_pool_kernel_size: [16, 8, 4]
-    n_stride_size: [2, 2, 2]
-    n_freq_downsample: [64, 8, 1]
+    n_pool_kernel_size: [16, 8]
+    n_stride_size: [2, 2]
+    n_freq_downsample: [64, 8]
