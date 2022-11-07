@@ -142,11 +142,11 @@ class Temporal_Graph_Signal(object):
             raise ValueError("Non-supported dataset!")
 
         if dataset_name in ett_dataset_list:
-            if not os.path.exists(f'./data/ETT'):
-                os.mkdir(f'./data/ETT')
-            self.path = f'./data/ETT/{dataset_name}'
+            if not os.path.exists(f'../src/data/ETT'):
+                os.mkdir(f'../src/data/ETT')
+            self.path = f'../src/data/ETT/{dataset_name}'
         else:
-            self.path = f'./data/{dataset_name}'
+            self.path = f'../src/data/{dataset_name}'
 
     def _download_url(self):
         if not os.path.exists(self.path):

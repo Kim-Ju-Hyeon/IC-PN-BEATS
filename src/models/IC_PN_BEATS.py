@@ -151,7 +151,7 @@ class IC_PN_BEATS(nn.Module):
             raise ValueError("Invalid block type")
 
     def forward(self, inputs, interpretability=False):
-        if (self.inter_correlation_block_type == 'GAT') and (interpretability == True):
+        if (self.inter_correlation_block_type == 'GAT') and interpretability:
             return_GAT_attention = True
         else:
             return_GAT_attention = False
