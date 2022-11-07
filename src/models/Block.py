@@ -146,7 +146,7 @@ class GNN_Block(nn.Module):
                 x, attn = layer(x, edge_index, edge_weight, return_attention_weights=True)
                 x = F.relu(x)
 
-                return x, attn
+                return x, attn[1]
             else:
                 x = layer(x, edge_index, edge_weight)
                 x = F.relu(x)
