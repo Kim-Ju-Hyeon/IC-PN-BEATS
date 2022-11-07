@@ -45,6 +45,7 @@ class SeasonalityGenerator(nn.Module):
         ).T
 
         self.basis = nn.Parameter(basis, requires_grad=False)
+
     def forward(self, x):
         return torch.matmul(x, self.basis)
 
@@ -141,8 +142,8 @@ class GNN_Block(nn.Module):
             # x = self.drop_out(x)
 
         for ii, layer in enumerate(self.Inter_Correlation_Block):
-            if return_GAT_attention:
-                x, attn = layer(x, edge_index, edge_weight)
+            if return_GAT_attention and self.inter_correlation_block_type == 'GAT':
+                x, attn = layer(x, edge_index, edge_weight, return_attention_weights=True)
                 x = F.relu(x)
 
                 return x, attn
