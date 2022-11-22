@@ -182,6 +182,7 @@ class N_model(nn.Module):
                 stacks_backcast = stacks_backcast + b
                 stacks_forecast = stacks_forecast + f
 
+            print(attn.shape)
             if interpretability:
                 _per_stack_backcast.append(stacks_backcast.cpu().numpy())
                 _per_stack_forecast.append(stacks_forecast.cpu().numpy())
