@@ -209,8 +209,8 @@ class Seasonlity_Block(GNN_Block):
         if return_GAT_attention:
             x, attn = super().forward(x, edge_index, edge_weight, return_GAT_attention)
 
-            backcast = self.backcast_trend_model(self.theta_b_fc(x))
-            forecast = self.forecast_trend_model(self.theta_f_fc(x))
+            backcast = self.backcast_seasonality_model(self.theta_b_fc(x))
+            forecast = self.forecast_seasonality_model(self.theta_f_fc(x))
 
             return backcast, forecast, attn
         else:
